@@ -1,0 +1,22 @@
+# Blueprint Render: conecte o repo em https://dashboard.render.com/blueprints
+# Banco Neon: npx neon skills -y  (ou scripts/neon-setup.ps1 / scripts/neon-setup.sh)
+# Depois cole DATABASE_URL do Neon no painel do Render.
+
+services:
+  - type: web
+    name: lumina-chat
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false

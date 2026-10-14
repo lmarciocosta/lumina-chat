@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lumina Chat</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="lumina-video/assets/css2_2832c0ff631d.css" rel="stylesheet"/>
+<link href="lumina-video/assets/css2_2b2d87bc82d8.css" rel="stylesheet"/>
+<link rel="stylesheet" href="lumina-video/assets/css/components.css"/>
+<link rel="stylesheet" href="lumina-video/assets/css/animations.css"/>
+<link rel="stylesheet" href="lumina-video/assets/css/utilities.css"/>
+<script src="lumina-video/assets/resource_3fa48481346f.js"></script>
+<script src="lumina-video/assets/lucide_latest_2eebd0ebe8c2.js"></script>
+<script src="lumina-video/assets/js/tailwind-config.js"></script>
+<style>
+  .chat-scroll::-webkit-scrollbar { width: 6px; }
+  .chat-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
+  .message-enter { animation: fadeSlideIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+  .typing-dot { animation: typingBounce 1.2s ease-in-out infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+  #chat-input { field-sizing: content; max-height: 160px; }
+  .auth-pw-wrap input { padding-right: 2.75rem; }
+</style>
+</head>
+<body class="bg-[#050505] text-white font-sans antialiased overflow-hidden selection:bg-orange-500/30 h-screen flex">
+
+<!-- aura-background -->
+<div class="aura-background-component fixed top-0 w-full h-screen -z-10 hue-rotate-90 saturate-50 mix-blend-screen pointer-events-none" data-alpha-mask="80" style="mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent)">
+  <div class="aura-background-component top-0 w-full -z-10 absolute h-full">
+    <div class="absolute w-full h-full left-0 top-0 -z-10" data-us-project="ILgOO23w4wEyPQOKyLO4"></div>
+  </div>
+</div>
+
+<!-- background-image-overlay -->
+<div class="fixed z-0 inset-0 pointer-events-none">
+  <img alt="" class="w-full h-full object-cover opacity-30 mix-blend-luminosity" src="lumina-video/assets/2b5079f4-4ddd-433b-a936-fc8f7d_7da21e998877.webp"/>
+  <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/95 via-[#050505]/70 to-[#050505]"></div>
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-900/10 via-[#050505]/0 to-[#050505]/0"></div>
+</div>
+
+<!-- vertical-grid-with-beams -->
+<div class="fixed inset-0 z-0 pointer-events-none flex w-full max-w-7xl mx-auto border-r border-white/5 opacity-40 hidden md:flex">
+  <div class="flex-1 border-l border-white/5 h-full relative overflow-hidden"></div>
+  <div class="flex-1 border-l border-white/5 h-full relative overflow-hidden">
+    <div class="absolute top-0 -left-[1px] w-px h-64 bg-gradient-to-b from-transparent via-orange-500/60 to-transparent animate-beam-1"></div>
+  </div>
+  <div class="flex-1 border-l border-white/5 h-full relative overflow-hidden">
+    <div class="absolute top-0 -left-[1px] w-px h-96 bg-gradient-to-b from-transparent via-orange-500/80 to-transparent animate-beam-2"></div>
+  </div>
+  <div class="flex-1 border-l border-white/5 h-full relative overflow-hidden">
+    <div class="absolute top-0 -left-[1px] w-px h-48 bg-gradient-to-b from-transparent via-orange-500/60 to-transparent animate-beam-3"></div>
+  </div>
+  <div class="flex-1 border-l border-white/5 h-full relative overflow-hidden"></div>
+</div>
+
+<!-- sidebar -->
+<aside id="sidebar" class="relative z-20 flex flex-col w-[280px] shrink-0 border-r border-white/5 bg-[#050505]/80 backdrop-blur-xl h-full transition-transform duration-300 md:translate-x-0 -translate-x-full fixed md:static inset-y-0 left-0">
+  <div class="flex items-center gap-3 px-5 py-6 border-b border-white/5">
+    <div class="flex bg-gradient-to-tr from-orange-500 to-amber-500 w-8 h-8 rounded-full items-center justify-center shrink-0" style="position:relative;--border-gradient:linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0));--border-radius-before:9999px">
+      <div class="w-2.5 h-2.5 bg-black rounded-full"></div>
+    </div>
+    <span class="text-lg font-semibold tracking-tight">Lumina</span>
+    <button type="button" id="close-sidebar" class="md:hidden ml-auto text-neutral-400 hover:text-white p-1" aria-label="Fechar menu">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+  <div class="p-4">
+    <button type="button" id="new-chat-btn" class="button-custom w-full scale-100 min-h-[42px]">
+      <div class="points_wrapper"><i class="point"></i><i class="point"></i><i class="point"></i><i class="point"></i></div>
+      <span class="inner gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Nova conversa</span>
+    </button>
+  </div>
+  <div class="px-4 pb-2">
+    <p class="text-[10px] font-bold tracking-widest uppercase text-neutral-500 mb-2">Histórico</p>
+    <ul id="thread-list" class="flex flex-col gap-1 max-h-[calc(100vh-220px)] overflow-y-auto chat-scroll"></ul>
+  </div>
+  <div id="user-panel" class="hidden mt-auto p-4 border-t border-white/5 space-y-3">
+    <div class="flex items-center gap-3 px-1">
+      <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-orange-400 shrink-0">
+        <i data-lucide="user" class="w-4 h-4"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <p id="user-email" class="text-sm text-white truncate">—</p>
+        <p class="text-[10px] text-neutral-500 font-mono">OpenRouter · Nemotron</p>
+      </div>
+    </div>
+    <button type="button" id="logout-btn" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-medium text-neutral-300 hover:text-white hover:border-orange-500/40 hover:bg-white/10 transition-all duration-300">
+      <i data-lucide="log-out" class="w-4 h-4"></i>
+      Sair
+    </button>
+  </div>
+</aside>
+<div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-10 md:hidden hidden" aria-hidden="true"></div>
+
+<!-- main -->
+<main class="relative z-10 flex flex-col flex-1 min-w-0 h-full">
+  <header class="flex items-center gap-3 px-4 md:px-6 py-4 border-b border-white/5 bg-[#050505]/60 backdrop-blur-md shrink-0">
+    <button type="button" id="open-sidebar" class="md:hidden text-neutral-400 hover:text-white p-1" aria-label="Abrir menu">
+      <i data-lucide="panel-left" class="w-5 h-5"></i>
+    </button>
+    <div class="flex items-center gap-2 text-orange-500/90">
+      <span class="flex h-2 w-2 rounded-full bg-orange-500"></span>
+      <span class="text-xs font-bold tracking-widest uppercase text-orange-500/80">Assistente IA</span>
+    </div>
+    <h1 id="chat-title" class="text-sm font-medium text-neutral-300 truncate ml-2 flex-1">Nova conversa</h1>
+    <div id="header-user" class="hidden shrink-0 flex items-center gap-2">
+      <span id="header-user-email" class="hidden md:inline text-xs text-neutral-500 truncate max-w-[160px]"></span>
+      <button type="button" id="logout-btn-header" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-neutral-300 hover:text-white hover:border-orange-500/40 transition-all duration-300">
+        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+        Sair
+      </button>
+    </div>
+  </header>
+
+  <div id="messages-wrap" class="flex-1 overflow-y-auto chat-scroll px-4 md:px-8 py-6">
+    <div id="welcome" class="max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[50vh] text-center message-enter">
+      <div class="inline-flex items-center gap-2 text-orange-500 mb-6">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <span class="text-xs font-bold tracking-widest uppercase">Lumina Chat</span>
+      </div>
+      <h2 class="text-3xl md:text-4xl font-medium tracking-tighter text-white mb-3">
+        Como posso
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-200 to-neutral-500">ajudar?</span>
+      </h2>
+      <p class="text-white/50 text-sm max-w-md mb-8 leading-relaxed">Converse com o modelo via OpenRouter. Suas mensagens ficam salvas nesta sessão do navegador.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
+        <button type="button" class="suggestion-btn text-left rounded-lg p-3 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-orange-500/30 transition-all duration-300 text-sm text-neutral-300" data-prompt="Explique quantum computing em termos simples">Explique um conceito complexo</button>
+        <button type="button" class="suggestion-btn text-left rounded-lg p-3 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-orange-500/30 transition-all duration-300 text-sm text-neutral-300" data-prompt="Escreva um e-mail profissional pedindo reunião">Rascunho de e-mail</button>
+        <button type="button" class="suggestion-btn text-left rounded-lg p-3 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-orange-500/30 transition-all duration-300 text-sm text-neutral-300" data-prompt="Sugira ideias criativas para um vídeo curto no YouTube">Ideias criativas</button>
+        <button type="button" class="suggestion-btn text-left rounded-lg p-3 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-orange-500/30 transition-all duration-300 text-sm text-neutral-300" data-prompt="Revise este texto e melhore a clareza:">Revisar texto</button>
+      </div>
+    </div>
+    <div id="messages" class="max-w-3xl mx-auto flex flex-col gap-6 hidden"></div>
+  </div>
+
+  <footer class="shrink-0 px-4 md:px-8 pb-6 pt-2">
+    <form id="chat-form" class="max-w-3xl mx-auto relative">
+      <div class="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl overflow-hidden transition-colors duration-300 focus-within:border-orange-500/40 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.12)]" style="position:relative;--border-gradient:linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0));--border-radius-before:16px">
+        <textarea id="chat-input" rows="1" placeholder="Envie uma mensagem..." class="w-full bg-transparent text-white placeholder:text-neutral-500 text-sm leading-relaxed px-4 pt-4 pb-14 resize-none outline-none min-h-[52px]" autocomplete="off"></textarea>
+        <div class="absolute bottom-3 right-3 flex items-center gap-2">
+          <span id="api-hint" class="text-[10px] text-neutral-600 hidden sm:inline font-mono"></span>
+          <button type="submit" id="send-btn" class="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-b from-orange-400 to-orange-600 text-black shadow-lg shadow-orange-500/25 hover:scale-105 transition-transform duration-200 disabled:opacity-40 disabled:pointer-events-none" aria-label="Enviar">
+            <i data-lucide="arrow-up" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <p class="text-center text-[10px] text-neutral-600 mt-2 font-mono">API: <span id="api-display"></span></p>
+    </form>
+  </footer>
+</main>
+
+<!-- login / cadastro -->
+<div id="auth-overlay" class="fixed inset-0 z-50 flex items-center justify-center px-4">
+  <div class="absolute inset-0 bg-[#050505]/85 backdrop-blur-xl"></div>
+  <div class="relative w-full max-w-[420px] rounded-2xl bg-[#0a0a0a] border border-white/10 backdrop-blur-md p-6 md:p-8 shadow-2xl" style="position:relative;--border-gradient:linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0));--border-radius-before:16px">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="flex bg-gradient-to-tr from-orange-500 to-amber-500 w-8 h-8 rounded-full items-center justify-center shrink-0" style="position:relative;--border-gradient:linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0));--border-radius-before:9999px">
+        <div class="w-2.5 h-2.5 bg-black rounded-full"></div>
+      </div>
+      <span class="text-lg font-semibold tracking-tight">Lumina</span>
+    </div>
+    <p class="text-[10px] font-bold tracking-widest uppercase text-orange-500/80 mb-2">Acesso</p>
+    <h2 id="auth-title" class="text-2xl font-medium tracking-tighter text-white mb-1">Entrar</h2>
+    <p id="auth-subtitle" class="text-sm text-white/50 mb-6">Use seu e-mail e senha para continuar o chat.</p>
+    <form id="auth-form" class="flex flex-col gap-3" autocomplete="on">
+      <label class="block">
+        <span class="text-[10px] font-bold tracking-widest uppercase text-neutral-500 mb-1.5 block">E-mail</span>
+        <input id="auth-email" type="email" required autocomplete="email" placeholder="voce@email.com" class="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 outline-none focus:border-orange-500/40"/>
+      </label>
+      <label class="block">
+        <span class="text-[10px] font-bold tracking-widest uppercase text-neutral-500 mb-1.5 block">Senha</span>
+        <div class="relative auth-pw-wrap">
+          <input id="auth-password" type="password" required minlength="8" maxlength="72" autocomplete="current-password" placeholder="Mínimo 8 caracteres" class="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 outline-none focus:border-orange-500/40"/>
+          <button type="button" class="auth-toggle-pw absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-white/5 transition-colors" data-target="auth-password" aria-label="Mostrar senha" title="Mostrar senha">
+            <i data-lucide="eye" class="w-4 h-4 pointer-events-none"></i>
+          </button>
+        </div>
+      </label>
+      <label id="auth-confirm-wrap" class="block hidden">
+        <span class="text-[10px] font-bold tracking-widest uppercase text-neutral-500 mb-1.5 block">Confirmar senha</span>
+        <div class="relative auth-pw-wrap">
+          <input id="auth-confirm" type="password" minlength="8" maxlength="72" autocomplete="new-password" placeholder="Repita a senha" class="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 outline-none focus:border-orange-500/40"/>
+          <button type="button" class="auth-toggle-pw absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-white/5 transition-colors" data-target="auth-confirm" aria-label="Mostrar senha" title="Mostrar senha">
+            <i data-lucide="eye" class="w-4 h-4 pointer-events-none"></i>
+          </button>
+        </div>
+      </label>
+      <p id="auth-error" class="hidden text-sm text-red-400"></p>
+      <button type="submit" id="auth-submit" class="button-custom w-full scale-100 min-h-[44px] mt-2">
+        <div class="points_wrapper"><i class="point"></i><i class="point"></i><i class="point"></i><i class="point"></i></div>
+        <span id="auth-submit-label" class="inner">Entrar</span>
+      </button>
+    </form>
+    <p class="text-center text-sm text-neutral-500 mt-5">
+      <span id="auth-switch-text">Não tem conta?</span>
+      <button type="button" id="auth-switch" class="text-orange-400 hover:text-orange-300 font-medium ml-1">Criar conta</button>
+    </p>
+  </div>
+</div>
+
+<script src="lumina-video/assets/js/unicorn-studio.js"></script>
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const API_BASE = (params.get("api") || localStorage.getItem("lumina_api_base") || window.location.origin).replace(/\/$/, "");
+  const AUTH_KEY = "lumina_auth_v1";
+
+  document.getElementById("api-display").textContent = API_BASE + "/send_message";
+  document.getElementById("api-hint").textContent = API_BASE.replace(/^https?:\/\//, "");
+
+  const STORAGE_KEY = "lumina_chat_threads_v1";
+  let threads = loadThreads();
+  let activeId = threads[0]?.id || null;
+  let authMode = "login";
+  let currentUser = null;
+
+  const els = {
+    welcome: document.getElementById("welcome"),
+    messages: document.getElementById("messages"),
+    messagesWrap: document.getElementById("messages-wrap"),
+    form: document.getElementById("chat-form"),
+    input: document.getElementById("chat-input"),
+    sendBtn: document.getElementById("send-btn"),
+    threadList: document.getElementById("thread-list"),
+    chatTitle: document.getElementById("chat-title"),
+    sidebar: document.getElementById("sidebar"),
+    backdrop: document.getElementById("sidebar-backdrop"),
+    authOverlay: document.getElementById("auth-overlay"),
+    authForm: document.getElementById("auth-form"),
+    authEmail: document.getElementById("auth-email"),
+    authPassword: document.getElementById("auth-password"),
+    authConfirm: document.getElementById("auth-confirm"),
+    authConfirmWrap: document.getElementById("auth-confirm-wrap"),
+    authError: document.getElementById("auth-error"),
+    authTitle: document.getElementById("auth-title"),
+    authSubtitle: document.getElementById("auth-subtitle"),
+    authSubmit: document.getElementById("auth-submit"),
+    authSubmitLabel: document.getElementById("auth-submit-label"),
+    authSwitch: document.getElementById("auth-switch"),
+    authSwitchText: document.getElementById("auth-switch-text"),
+    userEmail: document.getElementById("user-email"),
+    userPanel: document.getElementById("user-panel"),
+    headerUser: document.getElementById("header-user"),
+    headerUserEmail: document.getElementById("header-user-email"),
+  };
+
+  function refreshIcons(root) {
+    if (window.lucide) lucide.createIcons({ root: root || document });
+  }
+
+  function setPasswordVisible(inputId, visible) {
+    const input = document.getElementById(inputId);
+    const btn = document.querySelector('.auth-toggle-pw[data-target="' + inputId + '"]');
+    if (!input || !btn) return;
+    input.type = visible ? "text" : "password";
+    const icon = btn.querySelector("i");
+    if (icon) icon.setAttribute("data-lucide", visible ? "eye-off" : "eye");
+    btn.setAttribute("aria-label", visible ? "Ocultar senha" : "Mostrar senha");
+    btn.setAttribute("title", visible ? "Ocultar senha" : "Mostrar senha");
+    refreshIcons(btn.parentElement);
+  }
+
+  function resetPasswordToggles() {
+    setPasswordVisible("auth-password", false);
+    setPasswordVisible("auth-confirm", false);
+  }
+
+  function updateLoggedInUI(isLoggedIn, user) {
+    els.userPanel.classList.toggle("hidden", !isLoggedIn);
+    els.headerUser.classList.toggle("hidden", !isLoggedIn);
+    if (isLoggedIn && user) {
+      els.userEmail.textContent = user.email;
+      els.headerUserEmail.textContent = user.email;
+    } else {
+      els.userEmail.textContent = "—";
+      els.headerUserEmail.textContent = "";
+    }
+    refreshIcons();
+  }
+
+  function getStoredAuth() {
+    try {
+      return JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
+    } catch {
+      return null;
+    }
+  }
+
+  function setStoredAuth(data) {
+    localStorage.setItem(AUTH_KEY, JSON.stringify(data));
+  }
+
+  function clearStoredAuth() {
+    localStorage.removeItem(AUTH_KEY);
+    currentUser = null;
+  }
+
+  function authHeaders() {
+    const stored = getStoredAuth();
+    const headers = { "Content-Type": "application/json" };
+    if (stored?.access_token) headers.Authorization = "Bearer " + stored.access_token;
+    return headers;
+  }
+
+  function showAuthError(message) {
+    els.authError.textContent = message;
+    els.authError.classList.toggle("hidden", !message);
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    const isRegister = mode === "register";
+    els.authTitle.textContent = isRegister ? "Criar conta" : "Entrar";
+    els.authSubtitle.textContent = isRegister
+      ? "Cadastre um e-mail e senha para usar o chat."
+      : "Use seu e-mail e senha para continuar o chat.";
+    els.authSubmitLabel.textContent = isRegister ? "Criar conta" : "Entrar";
+    els.authSwitchText.textContent = isRegister ? "Já tem conta?" : "Não tem conta?";
+    els.authSwitch.textContent = isRegister ? "Entrar" : "Criar conta";
+    els.authConfirmWrap.classList.toggle("hidden", !isRegister);
+    els.authPassword.autocomplete = isRegister ? "new-password" : "current-password";
+    els.authConfirm.required = isRegister;
+    showAuthError("");
+  }
+
+  function showLogin() {
+    els.authOverlay.classList.remove("hidden");
+    setAuthMode("login");
+    resetPasswordToggles();
+    updateLoggedInUI(false);
+    refreshIcons();
+    els.authEmail.focus();
+  }
+
+  function hideLogin(user) {
+    currentUser = user;
+    els.authOverlay.classList.add("hidden");
+    updateLoggedInUI(true, user);
+  }
+
+  function logout() {
+    clearStoredAuth();
+    showLogin();
+  }
+
+  async function apiErrorMessage(res) {
+    try {
+      const data = await res.json();
+      const detail = data.detail;
+      if (typeof detail === "string") return detail;
+      if (Array.isArray(detail)) return detail.map((d) => d.msg || d).join(", ");
+      return "Não foi possível autenticar";
+    } catch {
+      return "Não foi possível autenticar";
+    }
+  }
+
+  async function restoreSession() {
+    const stored = getStoredAuth();
+    if (!stored?.access_token) {
+      showLogin();
+      return;
+    }
+    try {
+      const res = await fetch(API_BASE + "/auth/me", { headers: authHeaders() });
+      if (!res.ok) {
+        clearStoredAuth();
+        showLogin();
+        return;
+      }
+      hideLogin(await res.json());
+    } catch {
+      showLogin();
+    }
+  }
+
+  function loadThreads() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveThreads() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(threads));
+  }
+
+  function uid() {
+    return "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function getActiveThread() {
+    return threads.find((t) => t.id === activeId) || null;
+  }
+
+  function ensureThread() {
+    if (!activeId || !getActiveThread()) {
+      const t = { id: uid(), title: "Nova conversa", messages: [], updatedAt: Date.now() };
+      threads.unshift(t);
+      activeId = t.id;
+      saveThreads();
+    }
+    return getActiveThread();
+  }
+
+  function titleFromMessage(text) {
+    const clean = text.trim().replace(/\s+/g, " ");
+    return clean.length > 36 ? clean.slice(0, 36) + "…" : clean || "Nova conversa";
+  }
+
+  function renderThreadList() {
+    els.threadList.innerHTML = "";
+    threads
+      .slice()
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .forEach((t) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "w-full text-left text-sm px-3 py-2.5 rounded-lg transition-all duration-300 truncate flex items-center gap-2 " +
+          (t.id === activeId
+            ? "bg-white/10 text-white shadow-lg backdrop-blur-md translate-x-0"
+            : "text-neutral-400 hover:bg-white/5 hover:text-white");
+        if (t.id === activeId) {
+          btn.style.cssText =
+            "position:relative;--border-gradient:linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0));--border-radius-before:8px";
+        }
+        btn.innerHTML =
+          '<i data-lucide="message-square" class="w-3.5 h-3.5 shrink-0 opacity-60"></i><span class="truncate">' +
+          escapeHtml(t.title) +
+          "</span>";
+        btn.addEventListener("click", () => {
+          activeId = t.id;
+          renderThreadList();
+          renderMessages();
+          closeSidebarMobile();
+        });
+        li.appendChild(btn);
+        els.threadList.appendChild(li);
+      });
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function escapeHtml(s) {
+    return s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function formatAssistant(text) {
+    return escapeHtml(text).replace(/\n/g, "<br/>");
+  }
+
+  function renderMessages() {
+    const thread = getActiveThread();
+    if (!thread || thread.messages.length === 0) {
+      els.welcome.classList.remove("hidden");
+      els.messages.classList.add("hidden");
+      els.messages.innerHTML = "";
+      els.chatTitle.textContent = thread?.title || "Nova conversa";
+      return;
+    }
+    els.welcome.classList.add("hidden");
+    els.messages.classList.remove("hidden");
+    els.chatTitle.textContent = thread.title;
+    els.messages.innerHTML = thread.messages
+      .map((m) => {
+        if (m.role === "user") {
+          return (
+            '<div class="message-enter flex justify-end">' +
+            '<div class="max-w-[85%] rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed bg-gradient-to-b from-orange-500 to-orange-600 text-black font-medium shadow-lg shadow-orange-500/20">' +
+            escapeHtml(m.content) +
+            "</div></div>"
+          );
+        }
+        return (
+          '<div class="message-enter flex gap-3">' +
+          '<div class="shrink-0 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-orange-500">' +
+          '<i data-lucide="sparkles" class="w-4 h-4"></i></div>' +
+          '<div class="max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed bg-white/5 border border-white/10 text-neutral-200 backdrop-blur-sm">' +
+          formatAssistant(m.content) +
+          "</div></div>"
+        );
+      })
+      .join("");
+    if (window.lucide) lucide.createIcons();
+    scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    requestAnimationFrame(() => {
+      els.messagesWrap.scrollTop = els.messagesWrap.scrollHeight;
+    });
+  }
+
+  function appendTypingIndicator() {
+    const el = document.createElement("div");
+    el.id = "typing-indicator";
+    el.className = "message-enter flex gap-3";
+    el.innerHTML =
+      '<div class="shrink-0 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-orange-500"><i data-lucide="sparkles" class="w-4 h-4"></i></div>' +
+      '<div class="rounded-2xl px-4 py-3 bg-white/5 border border-white/10 flex gap-1 items-center">' +
+      '<span class="typing-dot w-1.5 h-1.5 rounded-full bg-orange-500"></span>' +
+      '<span class="typing-dot w-1.5 h-1.5 rounded-full bg-orange-500"></span>' +
+      '<span class="typing-dot w-1.5 h-1.5 rounded-full bg-orange-500"></span></div>';
+    els.messages.appendChild(el);
+    if (window.lucide) lucide.createIcons();
+    scrollToBottom();
+  }
+
+  function removeTypingIndicator() {
+    document.getElementById("typing-indicator")?.remove();
+  }
+
+  function setLoading(loading) {
+    els.sendBtn.disabled = loading;
+    els.input.disabled = loading;
+  }
+
+  async function sendMessage(text) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    const thread = ensureThread();
+    thread.messages.push({ role: "user", content: trimmed });
+    if (thread.title === "Nova conversa") thread.title = titleFromMessage(trimmed);
+    thread.updatedAt = Date.now();
+    saveThreads();
+    renderThreadList();
+    renderMessages();
+    els.input.value = "";
+    els.input.style.height = "auto";
+
+    appendTypingIndicator();
+    setLoading(true);
+
+    try {
+      const res = await fetch(API_BASE + "/send_message", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ message: trimmed }),
+      });
+      if (res.status === 401 || res.status === 403) {
+        clearStoredAuth();
+        showLogin();
+        throw new Error("Sessão expirada. Entre novamente.");
+      }
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Resposta inválida do servidor");
+      }
+      if (!res.ok) {
+        const detail = data.detail;
+        const msg = typeof detail === "string" ? detail : Array.isArray(detail) ? detail.map((d) => d.msg).join(", ") : "Erro ao enviar mensagem";
+        throw new Error(msg);
+      }
+      thread.messages.push({ role: "assistant", content: data.response });
+      thread.updatedAt = Date.now();
+      saveThreads();
+      removeTypingIndicator();
+      renderMessages();
+      renderThreadList();
+    } catch (err) {
+      removeTypingIndicator();
+      const errMsg = err.message || "Falha na conexão";
+      thread.messages.push({
+        role: "assistant",
+        content: "⚠ " + errMsg + (errMsg.includes("fetch") ? "\n\nVerifique se o backend está rodando (uvicorn backend.main:app --reload)." : ""),
+      });
+      saveThreads();
+      renderMessages();
+    } finally {
+      setLoading(false);
+      els.input.focus();
+    }
+  }
+
+  els.form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    sendMessage(els.input.value);
+  });
+
+  els.input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      els.form.requestSubmit();
+    }
+  });
+
+  els.input.addEventListener("input", () => {
+    els.input.style.height = "auto";
+    els.input.style.height = Math.min(els.input.scrollHeight, 160) + "px";
+  });
+
+  document.getElementById("new-chat-btn").addEventListener("click", () => {
+    const t = { id: uid(), title: "Nova conversa", messages: [], updatedAt: Date.now() };
+    threads.unshift(t);
+    activeId = t.id;
+    saveThreads();
+    renderThreadList();
+    renderMessages();
+    closeSidebarMobile();
+    els.input.focus();
+  });
+
+  document.querySelectorAll(".suggestion-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const prompt = btn.getAttribute("data-prompt");
+      if (prompt) sendMessage(prompt);
+    });
+  });
+
+  function openSidebarMobile() {
+    els.sidebar.classList.remove("-translate-x-full");
+    els.backdrop.classList.remove("hidden");
+  }
+  function closeSidebarMobile() {
+    els.sidebar.classList.add("-translate-x-full");
+    els.backdrop.classList.add("hidden");
+  }
+  document.getElementById("open-sidebar").addEventListener("click", openSidebarMobile);
+  document.getElementById("close-sidebar").addEventListener("click", closeSidebarMobile);
+  els.backdrop.addEventListener("click", closeSidebarMobile);
+
+  els.authSwitch.addEventListener("click", () => {
+    setAuthMode(authMode === "login" ? "register" : "login");
+  });
+
+  els.authForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    showAuthError("");
+    const email = els.authEmail.value.trim();
+    const password = els.authPassword.value;
+    if (authMode === "register" && password !== els.authConfirm.value) {
+      showAuthError("As senhas não coincidem");
+      return;
+    }
+    els.authSubmit.disabled = true;
+    try {
+      const res = await fetch(API_BASE + (authMode === "register" ? "/auth/register" : "/auth/login"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) throw new Error(await apiErrorMessage(res));
+      const data = await res.json();
+      setStoredAuth({ access_token: data.access_token, user: data.user });
+      els.authForm.reset();
+      hideLogin(data.user);
+    } catch (err) {
+      showAuthError(err.message || "Falha na autenticação");
+    } finally {
+      els.authSubmit.disabled = false;
+    }
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", logout);
+  document.getElementById("logout-btn-header").addEventListener("click", logout);
+
+  document.querySelectorAll(".auth-toggle-pw").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById(btn.dataset.target);
+      if (!input) return;
+      setPasswordVisible(btn.dataset.target, input.type === "password");
+    });
+  });
+
+  if (!activeId && threads.length) activeId = threads[0].id;
+  if (!threads.length) ensureThread();
+
+  renderThreadList();
+  renderMessages();
+  restoreSession();
+
+  if (window.lucide) lucide.createIcons();
+})();
+</script>
+</body>
+</html>
