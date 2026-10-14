@@ -11,6 +11,8 @@ wheels/
 
 # Secrets
 .env
+render.local.env
+.env.render
 
 # Local database
 data/*.db
