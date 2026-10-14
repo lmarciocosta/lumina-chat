@@ -32,15 +32,14 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 }
 
 Write-Host "`n=== 4/4 Render ===" -ForegroundColor Cyan
+if (Test-Path "$Root\render.local.env") {
+  Write-Host "  Variaveis prontas em: render.local.env (copie para o painel do Render)" -ForegroundColor Yellow
+}
 Write-Host @"
   1. https://dashboard.render.com -> New -> Blueprint
   2. Conecte o repositorio GitHub deste projeto
-  3. Em Environment, confira:
-       OPENROUTER_API_KEY = (sua chave)
-       DATABASE_URL       = (Neon)
-       SECRET_KEY         = (gerada ou aleatoria longa)
-  4. Deploy. URL final: https://lumina-chat.onrender.com (ou nome escolhido)
-  5. Teste: /health e login na home
+  3. Environment -> cole DATABASE_URL, OPENROUTER_API_KEY, SECRET_KEY (de render.local.env)
+  4. Deploy. Teste /health (database: postgresql) e login na home
 "@
 
 Write-Host "`nPronto. Siga os passos acima se algum comando pedir login no navegador.`n" -ForegroundColor Green
